@@ -3,6 +3,7 @@
 import { useState } from "react";
 import dynamic from "next/dynamic";
 
+
 // Dynamically import 3D component to avoid SSR
 const Landing3D = dynamic(() => import("./components/Landing3D").then(mod => mod.default), { ssr: false });
 
