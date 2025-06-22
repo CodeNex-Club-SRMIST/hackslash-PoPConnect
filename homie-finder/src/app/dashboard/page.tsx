@@ -6,6 +6,8 @@ import { getAuth, onAuthStateChanged, User } from "firebase/auth";
 import { getUserMatches } from "../../lib/explore/matches";
 import { getUserProfile } from "../../lib/profile/userProfile";
 import { auth } from "../../lib/services/firebase";
+import Image from 'next/image';
+import logo from '../../assets/pop logo.png';
 
 function WalletConnectTrigger() {
   const { openConnectModal } = useConnectModal();
@@ -118,9 +120,12 @@ export default function DashboardPage() {
       {/* Navbar */}
       <nav className="sticky top-0 z-20 backdrop-blur-lg bg-[#0a0f2c]/70 rounded-b-2xl shadow-md">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row justify-between items-center py-4 px-3 gap-3 sm:py-5">
-          <span className="text-xl sm:text-3xl font-extrabold text-white font-[Poppins] drop-shadow-lg">
-            PoPConnect
-          </span>
+          <div className="flex items-center gap-3">
+            <Image src={logo} alt="PoPConnect Logo" width={50} height={50} />
+            <span className="text-xl sm:text-3xl font-extrabold text-white font-[Poppins] drop-shadow-lg">
+              PoPConnect
+            </span>
+          </div>
           <div className="flex flex-wrap gap-2 items-center">
             <Link href="/explore" className="text-cyan-200 hover:text-white transition font-semibold px-3 py-1 rounded text-sm sm:text-base">
               Explore
@@ -144,7 +149,7 @@ export default function DashboardPage() {
         {/* Welcome Header */}
         <div className="mt-10 sm:mt-14 text-center mb-10">
           <h1 className="text-3xl sm:text-5xl font-extrabold text-white font-[Poppins] drop-shadow mb-3">
-          Let’s Find Your Perfect Partner Today!
+          Let's Find Your Perfect Partner Today!
           </h1>
           <p className="text-cyan-100 text-base sm:text-xl font-[Inter]">
             Your productivity hub. Connect, collaborate, and reach your goals.

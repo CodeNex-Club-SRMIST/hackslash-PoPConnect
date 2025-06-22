@@ -4,6 +4,8 @@ import { signInWithGoogle } from "../lib/services/auth";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
+import Image from 'next/image';
+import logo from '../assets/pop logo.png';
 
 const Landing3D = dynamic(() => import("./components/Landing3D"), { ssr: false });
 
@@ -19,13 +21,16 @@ export default function LandingPage() {
 
       {/* Navbar */}
       <nav className="w-full flex justify-between items-center py-6 px-8 max-w-6xl mx-auto">
-        <div>
-          <span className="text-3xl font-extrabold text-white tracking-tight font-[Poppins]">
-            PoPConnect
-          </span>
-          <p className="text-cyan-300 text-md font-[Poppins] mt-1">
-            Proof of Passion, Power of People.
-          </p>
+        <div className="flex items-center gap-3">
+          <Image src={logo} alt="PoPConnect Logo" width={50} height={50} />
+          <div>
+            <span className="text-5xl font-extrabold text-white tracking-tight font-[Poppins]">
+              PoPConnect
+            </span>
+            <p className="text-cyan-300 text-md font-[Poppins] mt-1">
+              Proof of Passion, Power of People.
+            </p>
+          </div>
         </div>
         <div>
           <button
