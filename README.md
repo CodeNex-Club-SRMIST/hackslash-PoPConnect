@@ -140,10 +140,4 @@ Implement a verification system where users can issue Proof-of-Participation (Po
 ### 2. Trending Events Explorer
 Integrate an external events API to display the latest trending events happening nearby. Users will be able to explore and join events relevant to their interests and location.
 
-## 📄 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
 ---
-
-**Built with ❤️ by the MugenMinds team**
