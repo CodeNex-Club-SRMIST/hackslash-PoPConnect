@@ -75,18 +75,31 @@ export default function ExplorePage() {
         const snap = await getDocs(collection(db, "users"));
         let data = snap.docs.map(doc => ({ id: doc.id, visible: true, ...doc.data() } as Profile));
         
-        // Filter out current user and invisible profiles
+        // Filter out current user, invisible profiles, and profiles without proper data
         const currentUser = auth.currentUser;
         if (currentUser) {
-          data = data.filter((p) => p.id !== currentUser.uid && p.visible !== false);
+          data = data.filter((p) => 
+            p.id !== currentUser.uid && 
+            p.visible !== false && 
+            p.name && 
+            p.name.trim() !== '' && 
+            p.name !== 'Jane Doe' && 
+            p.email !== 'jane.doe@email.com'
+          );
         }
 
-        // Filter by distance if location is available
+        // Only filter by distance if location is available AND user has location data
+        // This prevents hiding profiles when location permission is denied
         if (userLocation) {
-          data = data.filter((p) =>
+          const profilesWithLocation = data.filter((p) =>
             p.latitude && p.longitude &&
             getDistanceFromLatLonInKm(userLocation.lat, userLocation.lng, p.latitude, p.longitude) <= 25
           );
+          
+          // If we have profiles with location, use them. Otherwise, show all profiles
+          if (profilesWithLocation.length > 0) {
+            data = profilesWithLocation;
+          }
         }
 
         setProfiles(data);
@@ -117,6 +130,7 @@ export default function ExplorePage() {
       // If it's a right swipe, check for mutual match
       if (direction === 'right') {
         const isMatch = await isMutualLike(currentUser.uid, currentProfile.id);
+        console.log(`Checking match between ${currentUser.uid} and ${currentProfile.id}: ${isMatch}`);
         
         if (isMatch) {
           // Create a match
@@ -130,7 +144,7 @@ export default function ExplorePage() {
 
           setTimeout(() => {
             setMatchNotification({ show: false, profile: null });
-          }, 3000);
+          }, 5000); // Increased timeout to 5 seconds
         }
       }
 
@@ -208,7 +222,7 @@ export default function ExplorePage() {
           </div>
         ) : (
           // Swipe Cards
-          <div className="relative w-full max-w-sm h-[600px] mx-auto">
+          <div className="relative w-full max-w-sm h-[650px] mx-auto">
             {/* Next card (background) */}
             {nextProfile && (
               <SwipeCard

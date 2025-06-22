@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { auth } from "../../../lib/services/firebase";
 import { getUserProfile } from "../../../lib/profile/userProfile";
-import { getChatDetails, subscribeToMessages, sendMessage, Message } from "../../../lib/chat";
+import { getChatDetails, subscribeToMessages, sendMessage, Message } from "../../../lib/chat/chat";
 import Link from "next/link";
 
 interface ChatPageProps {

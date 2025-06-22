@@ -1,5 +1,27 @@
 "use client";
 import Link from "next/link";
+import { ConnectButton, useConnectModal } from "@rainbow-me/rainbowkit";
+import { useEffect, useState } from "react";
+import { getAuth, onAuthStateChanged, User } from "firebase/auth";
+import { getUserMatches } from "../../lib/explore/matches";
+import { getUserProfile } from "../../lib/profile/userProfile";
+import { auth } from "../../lib/services/firebase";
+
+function WalletConnectTrigger() {
+  const { openConnectModal } = useConnectModal();
+  const auth = getAuth();
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user: User | null) => {
+      if (user && openConnectModal) {
+        openConnectModal();
+      }
+    });
+    return () => unsubscribe();
+  }, [auth, openConnectModal]);
+
+  return null;
+}
 
 // Reusable StatCard
 function StatCard({ label, value }: { label: string; value: number }) {
@@ -44,6 +66,49 @@ function DashboardCard({
 }
 
 export default function DashboardPage() {
+  const [stats, setStats] = useState({
+    matches: 0,
+    activities: 0,
+    messages: 0
+  });
+  const [loading, setLoading] = useState(true);
+
+  const fetchStats = async () => {
+    const currentUser = auth.currentUser;
+    if (currentUser) {
+      try {
+        // Fetch matches
+        const matches = await getUserMatches(currentUser.uid);
+        
+        // Fetch user profile for additional stats
+        const profile = await getUserProfile(currentUser.uid);
+        
+        setStats({
+          matches: matches.length,
+          activities: profile?.activities?.length || 0,
+          messages: profile?.messages?.length || 0
+        });
+      } catch (error) {
+        console.error("Error fetching stats:", error);
+      }
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchStats();
+  }, []);
+
+  // Refresh stats when user changes
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        fetchStats();
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+
   return (
     <div className="min-h-screen font-sans relative overflow-hidden bg-gradient-to-br from-[#0a0f2c] via-[#1a237e] to-[#0f1e4b]">
       {/* Background Orbs */}
@@ -69,6 +134,7 @@ export default function DashboardPage() {
             <Link href="/" className="bg-cyan-400 text-[#0a0f2c] px-4 py-1 rounded-lg font-bold shadow hover:bg-cyan-300 transition text-sm sm:text-base">
               Logout
             </Link>
+            <ConnectButton showBalance={false} />
           </div>
         </div>
       </nav>
@@ -85,33 +151,35 @@ export default function DashboardPage() {
           </p>
         </div>
 
+        <WalletConnectTrigger />
+
         {/* Stat Cards */}
         <div className="flex gap-4 flex-wrap justify-center w-full mb-12">
-          <StatCard label="Matches" value={0} />
-          <StatCard label="Activities" value={0} />
-          <StatCard label="Messages" value={0} />
+          <StatCard label="Matches" value={loading ? 0 : stats.matches} />
+          <StatCard label="Activities" value={loading ? 0 : stats.activities} />
+          <StatCard label="Messages" value={loading ? 0 : stats.messages} />
         </div>
 
         {/* Dashboard Feature Cards */}
         <div className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
           <DashboardCard
-            title="Your Matches"
+            title="Explore & Connect"
             desc="Find collaborators aligned with your goals."
             link="/explore"
             button="Explore"
             icon="🤝"
           />
           <DashboardCard
-            title="Activities"
-            desc="View your upcoming events and activities."
-            link="/community"
+            title="Activities & Chats"
+            desc="View your chats, events, and activities."
+            link="/activities"
             button="View"
             icon="📅"
           />
           <DashboardCard
-            title="Trending Skills"
-            desc="Discover popular trends and join in."
-            link="/explore"
+            title="Trending Events"
+            desc="Discover trending events and activities."
+            link="/events"
             button="Browse"
             icon="🚀"
           />
@@ -125,7 +193,7 @@ export default function DashboardPage() {
               We value your input — help us improve your experience.
             </p>
             <Link
-              href="/support"
+              href="/help"
               className="inline-block bg-cyan-400 hover:bg-cyan-300 text-[#0a0f2c] font-bold py-2 px-6 rounded-lg shadow transition text-sm sm:text-base"
             >
               Contact Support

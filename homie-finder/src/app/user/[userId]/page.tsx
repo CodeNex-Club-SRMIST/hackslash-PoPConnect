@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, use } from "react";
 import { auth } from "../../../lib/services/firebase";
 import { getUserProfile } from "../../../lib/profile/userProfile";
 import { saveMatch, matchExists } from "../../../lib/explore/matches";
@@ -8,9 +8,9 @@ import Link from "next/link";
 import Image from "next/image";
 
 interface UserProfilePageProps {
-  params: {
+  params: Promise<{
     userId: string;
-  };
+  }>;
 }
 
 interface UserProfile {
@@ -33,6 +33,7 @@ interface UserProfile {
 }
 
 export default function UserProfilePage({ params }: UserProfilePageProps) {
+  const { userId } = use(params);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>("");
@@ -44,10 +45,10 @@ export default function UserProfilePage({ params }: UserProfilePageProps) {
     const fetchUserProfile = async () => {
       try {
         setLoading(true);
-        const profile = await getUserProfile(params.userId);
+        const profile = await getUserProfile(userId);
         
         if (profile) {
-          // Type the profile data properly
+          
           const typedProfile: UserProfile = {
             name: profile.name || 'Unknown User',
             img: profile.img || '/avatar1.png',
@@ -69,9 +70,8 @@ export default function UserProfilePage({ params }: UserProfilePageProps) {
           
           setUserProfile(typedProfile);
           
-          // Check if there's already a match
           if (currentUser) {
-            const matchExistsResult = await matchExists(currentUser.uid, params.userId);
+            const matchExistsResult = await matchExists(currentUser.uid, userId);
             setIsMatch(matchExistsResult);
           }
         } else {
@@ -86,14 +86,14 @@ export default function UserProfilePage({ params }: UserProfilePageProps) {
     };
 
     fetchUserProfile();
-  }, [params.userId, currentUser]);
+  }, [userId, currentUser]);
 
   const handleCreateMatch = async () => {
     if (!currentUser || !userProfile) return;
 
     try {
       setIsLoadingMatch(true);
-      await saveMatch(currentUser.uid, params.userId);
+      await saveMatch(currentUser.uid, userId);
       setIsMatch(true);
     } catch (error) {
       console.error("Error creating match:", error);
@@ -242,7 +242,7 @@ export default function UserProfilePage({ params }: UserProfilePageProps) {
                 <div className="flex gap-3">
                   {isMatch ? (
                     <Link
-                      href={`/chat/${[currentUser?.uid, params.userId].sort().join('_')}`}
+                      href={`/chat/${[currentUser?.uid, userId].sort().join('_')}`}
                       className="bg-cyan-400 hover:bg-cyan-300 text-[#0a0f2c] px-6 py-3 rounded-xl font-bold shadow-lg transition"
                     >
                       💬 Start Chat

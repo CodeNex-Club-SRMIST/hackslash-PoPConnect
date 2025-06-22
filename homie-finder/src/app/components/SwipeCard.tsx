@@ -34,19 +34,30 @@ export default function SwipeCard({ profile, onSwipe, onRemove, isTop }: SwipeCa
   const cardRef = useRef<HTMLDivElement>(null);
   const startX = useRef(0);
   const currentX = useRef(0);
+  const animationFrameRef = useRef<number>();
+
+  const updateDragOffset = (offset: number) => {
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+    }
+    animationFrameRef.current = requestAnimationFrame(() => {
+      setDragOffset(offset);
+    });
+  };
 
   const handleTouchStart = (e: React.TouchEvent) => {
     if (!isTop) return;
     setIsDragging(true);
     startX.current = e.touches[0].clientX;
     currentX.current = 0;
+    setDragOffset(0);
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
     if (!isTop || !isDragging) return;
     e.preventDefault();
     currentX.current = e.touches[0].clientX - startX.current;
-    setDragOffset(currentX.current);
+    updateDragOffset(currentX.current);
   };
 
   const handleTouchEnd = () => {
@@ -60,7 +71,8 @@ export default function SwipeCard({ profile, onSwipe, onRemove, isTop }: SwipeCa
       setTimeout(() => {
         onSwipe(direction);
         setIsSwiping(false);
-      }, 300);
+        setDragOffset(0);
+      }, 200);
     } else {
       setDragOffset(0);
     }
@@ -71,12 +83,13 @@ export default function SwipeCard({ profile, onSwipe, onRemove, isTop }: SwipeCa
     setIsDragging(true);
     startX.current = e.clientX;
     currentX.current = 0;
+    setDragOffset(0);
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
     if (!isTop || !isDragging) return;
     currentX.current = e.clientX - startX.current;
-    setDragOffset(currentX.current);
+    updateDragOffset(currentX.current);
   };
 
   const handleMouseUp = () => {
@@ -90,7 +103,8 @@ export default function SwipeCard({ profile, onSwipe, onRemove, isTop }: SwipeCa
       setTimeout(() => {
         onSwipe(direction);
         setIsSwiping(false);
-      }, 300);
+        setDragOffset(0);
+      }, 200);
     } else {
       setDragOffset(0);
     }
@@ -103,7 +117,8 @@ export default function SwipeCard({ profile, onSwipe, onRemove, isTop }: SwipeCa
     setTimeout(() => {
       onSwipe('left');
       setIsSwiping(false);
-    }, 300);
+      setDragOffset(0);
+    }, 200);
   };
 
   const swipeRight = () => {
@@ -113,18 +128,36 @@ export default function SwipeCard({ profile, onSwipe, onRemove, isTop }: SwipeCa
     setTimeout(() => {
       onSwipe('right');
       setIsSwiping(false);
-    }, 300);
+      setDragOffset(0);
+    }, 200);
   };
+
+  // Cleanup animation frame on unmount
+  useEffect(() => {
+    return () => {
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+    };
+  }, []);
 
   // Calculate rotation and opacity based on drag offset
   const rotation = Math.min(Math.max(dragOffset * 0.1, -30), 30);
   const opacity = isTop ? Math.max(0, 1 - Math.abs(dragOffset) / 200) : 0.8;
   const scale = isTop ? Math.max(0.8, 1 - Math.abs(dragOffset) / 400) : 0.95;
 
+  // Get profile image with fallback
+  const getProfileImage = () => {
+    if (profile.img && profile.img !== '/avatar1.png') {
+      return profile.img;
+    }
+    return '/default-avatar.png';
+  };
+
   return (
     <div
       ref={cardRef}
-      className={`absolute w-full max-w-sm mx-auto transition-all duration-300 ease-out ${
+      className={`absolute w-full max-w-sm mx-auto transition-all duration-200 ease-out ${
         isTop ? 'z-10' : 'z-0'
       } ${isSwiping ? 'pointer-events-none' : ''}`}
       style={{
@@ -139,11 +172,11 @@ export default function SwipeCard({ profile, onSwipe, onRemove, isTop }: SwipeCa
       onMouseUp={handleMouseUp}
       onMouseLeave={handleMouseUp}
     >
-      <div className="relative bg-white/10 backdrop-blur-xl rounded-3xl shadow-2xl overflow-hidden border border-cyan-400/20">
+      <div className="relative bg-white/10 backdrop-blur-xl rounded-3xl shadow-2xl overflow-hidden border border-cyan-400/20 min-h-[500px] max-h-[600px] flex flex-col">
         {/* Profile Image */}
-        <div className="relative h-96 w-full">
+        <div className="relative h-64 w-full flex-shrink-0">
           <img
-            src={profile.img || '/default-avatar.png'}
+            src={getProfileImage()}
             alt={profile.name || 'Profile'}
             className="w-full h-full object-cover"
             onError={(e) => {
@@ -175,42 +208,56 @@ export default function SwipeCard({ profile, onSwipe, onRemove, isTop }: SwipeCa
           )}
         </div>
 
-        {/* Profile Info */}
-        <div className="p-6">
+        {/* Profile Info - Scrollable Content */}
+        <div className="p-6 flex-1 overflow-y-auto">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-2xl font-bold text-white">
-              {profile.name}, <span className="text-cyan-200 font-normal">{profile.age}</span>
+              {profile.name}, <span className="text-cyan-200 font-normal">{profile.age || 'N/A'}</span>
             </h2>
-            <div className="text-cyan-300 text-sm">{profile.location}</div>
+            <div className="text-cyan-300 text-sm">{profile.location || 'Location not set'}</div>
           </div>
           
-          <p className="text-cyan-100 text-lg mb-4">{profile.bio}</p>
+          {profile.bio && (
+            <p className="text-cyan-100 text-lg mb-4">{profile.bio}</p>
+          )}
           
           {/* Interests */}
-          <div className="flex flex-wrap gap-2 mb-4">
-            {(profile.interests || []).slice(0, 3).map((interest: string) => (
-              <span key={interest} className="bg-cyan-400/20 text-cyan-200 px-3 py-1 rounded-full text-sm">
-                {interest}
-              </span>
-            ))}
-            {(profile.interests || []).length > 3 && (
-              <span className="text-cyan-300 text-sm">+{(profile.interests || []).length - 3} more</span>
-            )}
-          </div>
+          {profile.interests && profile.interests.length > 0 && (
+            <div className="mb-4">
+              <h3 className="text-cyan-200 font-semibold mb-2">Interests</h3>
+              <div className="flex flex-wrap gap-2">
+                {profile.interests.slice(0, 3).map((interest: string) => (
+                  <span key={interest} className="bg-cyan-400/20 text-cyan-200 px-3 py-1 rounded-full text-sm">
+                    {interest}
+                  </span>
+                ))}
+                {profile.interests.length > 3 && (
+                  <span className="text-cyan-300 text-sm">+{profile.interests.length - 3} more</span>
+                )}
+              </div>
+            </div>
+          )}
           
           {/* Skills */}
-          <div className="flex flex-wrap gap-2 mb-4">
-            {(profile.skills || []).slice(0, 3).map((skill: string) => (
-              <span key={skill} className="bg-blue-400/20 text-blue-200 px-3 py-1 rounded-full text-sm">
-                {skill}
-              </span>
-            ))}
-            {(profile.skills || []).length > 3 && (
-              <span className="text-blue-300 text-sm">+{(profile.skills || []).length - 3} more</span>
-            )}
-          </div>
+          {profile.skills && profile.skills.length > 0 && (
+            <div className="mb-4">
+              <h3 className="text-blue-200 font-semibold mb-2">Skills</h3>
+              <div className="flex flex-wrap gap-2">
+                {profile.skills.slice(0, 3).map((skill: string) => (
+                  <span key={skill} className="bg-blue-400/20 text-blue-200 px-3 py-1 rounded-full text-sm">
+                    {skill}
+                  </span>
+                ))}
+                {profile.skills.length > 3 && (
+                  <span className="text-cyan-300 text-sm">+{profile.skills.length - 3} more</span>
+                )}
+              </div>
+            </div>
+          )}
           
-          <p className="text-cyan-100 text-sm italic">{profile.about}</p>
+          {profile.about && (
+            <p className="text-cyan-100 text-sm italic">{profile.about}</p>
+          )}
         </div>
 
         {/* Action Buttons */}
