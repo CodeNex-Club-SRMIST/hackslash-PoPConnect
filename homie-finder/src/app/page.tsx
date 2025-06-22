@@ -19,9 +19,14 @@ export default function LandingPage() {
 
       {/* Navbar */}
       <nav className="w-full flex justify-between items-center py-6 px-8 max-w-6xl mx-auto">
-        <span className="text-3xl font-extrabold text-white tracking-tight font-[Poppins]">
-          HomieFinder
-        </span>
+        <div>
+          <span className="text-3xl font-extrabold text-white tracking-tight font-[Poppins]">
+            PoPConnect
+          </span>
+          <p className="text-cyan-300 text-md font-[Poppins] mt-1">
+            Proof of Passion, Power of People.
+          </p>
+        </div>
         <div>
           <button
             onClick={() => setShowLogin(true)}
@@ -47,8 +52,8 @@ export default function LandingPage() {
           </h1>
           <p className="text-lg md:text-2xl text-gray-200 mb-10 max-w-xl font-[Poppins]">
             Find the perfect partner for your next project, workout, learning
-            journey, or shared living. HomieFinder connects you with people who
-            share your goals and passions.
+            journey, or shared living. PoPConnect brings together people who
+            share your goals, purpose and passions.
           </p>
           <button
             onClick={() => setShowSignup(true)}
@@ -66,7 +71,7 @@ export default function LandingPage() {
 
       {/* Footer */}
       <footer className="mt-12 mb-4 text-cyan-300 text-sm text-center font-[Poppins]">
-        &copy; {new Date().getFullYear()} HomieFinder. All rights reserved.
+        &copy; {new Date().getFullYear()} PoPConnect. All rights reserved.
       </footer>
 
       {/* Modals */}
