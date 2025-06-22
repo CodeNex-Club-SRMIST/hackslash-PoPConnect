@@ -131,7 +131,7 @@ The app uses Firebase for:
 ### Deployment
 - **Network**: Sepolia testnet (for development)
 - **Framework**: Hardhat with OpenZeppelin contracts
-- **Integration**: Frontend integration with wagmi and RainbowKit
+- **Integration**: Wallet integration with wagmi and RainbowKit
 
 ## 🚀 Future Enhancements
 ### 1. PoP Badge Verification UI 
